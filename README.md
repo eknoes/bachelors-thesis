@@ -2,6 +2,7 @@
 **Enhancements for MACsec providing transparent Layer-2 encryption**
 
 This repository contains all materials for my thesis.
+The thesis itself as PDF is [here](thesis/thesis.pdf).
 
 The thesis itself is written in LaTeX, the source files are in the `thesis/` directory.
 
