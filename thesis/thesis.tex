@@ -1,0 +1,182 @@
+\documentclass[ a4paper,
+  abstract=false,
+  twoside,
+  listof=totoc,
+  numbers=noenddot,
+  bibliography=totoc,
+  headsepline,
+  appendixprefix,
+final]{scrreprt}
+\KOMAoptions{titlepage=firstiscover,twoside,listof=totoc, BCOR=1.5cm, DIV=12}
+
+\usepackage{subcaption}
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[hidelinks=true]{hyperref}
+\usepackage{clrscode}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[pdftex]{graphicx}
+\usepackage[lsb=1]{bytefield}
+\usepackage[justification=centering]{caption}
+\usepackage[acronym,nomain,toc]{glossaries}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{todonotes}
+\usepackage{listings}
+\usepackage{multirow}
+\usepackage{setspace}
+\usepackage{geometry}
+\usepackage{tabularx} % book-quality tables
+\usepackage{booktabs} % book-quality tables
+\usepackage{float}
+\usepackage{tikz}
+\usepackage[final]{microtype}
+\usepackage[nottoc]{tocbibind}
+\usepackage{csquotes}% Recommended
+\usepackage{pdfpages}
+\usepackage[backend=biber,style=alphabetic,alldates=long]{biblatex}
+\usepackage{chngcntr}
+
+\usetikzlibrary{arrows.meta}
+\addbibresource{references.bib}
+
+\input{style.tex}
+
+% Colors
+\definecolor{pastelgreen}{RGB}{190, 219, 57}
+\definecolor{pastelred}{RGB}{255, 117, 97}
+\definecolor{pastelorange}{RGB}{255, 210, 87}
+
+\pgfdeclarelayer{bg}    % declare background layer
+\pgfsetlayers{bg,main}  % set the order of the layers (main is the standard layer)
+
+\renewcommand{\arraystretch}{1.2} % Nice tables
+
+\usetikzlibrary{matrix,calc,shapes,positioning}
+\lstset{
+    showstringspaces=false,
+    basicstyle=\ttfamily,
+    keywordstyle=\color{blue},
+    commentstyle=\color[gray]{0.6},
+    stringstyle=\color[RGB]{255,150,75}
+}
+\renewcommand{\lstlistingname}{Source Code}
+\newcommand{\inlinecode}[2]{\colorbox{white}{\lstinline[language=#1]$#2$}}
+\newcommand{\documenttitle}{Enhancements for MACsec providing transparent Layer-2 encryption}
+
+\newcommand{\colorbitbox}[3]{%
+\rlap{\bitbox{#2}{\color{#1}\rule{\width}{\height}}}%
+\bitbox{#2}{#3}}
+
+\newcommand{\colorbitboxProp}[4]{%
+\rlap{\bitbox[#4]{#2}{\color{#1}\rule{\width}{\height}}}%
+\bitbox[#4]{#2}{#3}}
+
+\newcommand{\colorwordbox}[3]{%
+\rlap{\wordbox{#2}{\color{#1}\rule{\width}{\height}}}%
+\wordbox{#2}{#3}}
+
+\newcommand{\colorwordboxProp}[4]{%
+\rlap{\wordbox[#4]{#2}{\color{#1}\rule{\width}{\height}}}%
+\wordbox[#4]{#2}{#3}}
+
+\graphicspath{{./figures/}}
+
+\glsdisablehyper
+
+\newacronymstyle{long-em-short}%
+  {% use the same display as "long-short"
+  \GlsUseAcrEntryDispStyle{long-short}%
+  }%
+  {% use the same definitions as "long-short"
+  \GlsUseAcrStyleDefs{long-short}%
+  % Minor modifications:
+  \renewcommand*{\genacrfullformat}[2]{%
+    \firstacronymfont{\emph{\glsentrylong{##1}} (\glsentryshort{##1})}%
+  }
+  \renewcommand*{\genplacrfullformat}[2]{%
+    \firstacronymfont{\emph{\glsentrylongpl{##1}} (\glsentryshortpl{##1})}%
+  }
+}
+
+\setacronymstyle{long-em-short}
+\input{./acronyms.tex}
+\makeglossaries
+\date{March 26,  2018}
+\newcommand{\printdate}{\@date}
+
+\begin{document}
+\pagenumbering{Roman}
+
+  \begin{singlespace}
+
+    \subject{{\LARGE Bachelor's Thesis}}
+
+    \title{\documenttitle}
+
+    \author{Jan Sönke Huster}
+
+    \publishers{TU Dresden\\
+    Faculty of Computer Science\\
+    Institute of Systems Architecture\\
+    Chair of Privacy and Data Security\\
+    \begin{minipage}{\textwidth}%\\
+      \vskip 6cm
+       {\normalsize }
+       \begin{tabular}{ll}
+        Professor: &
+        Prof. Dr. Thorsten Strufe\tabularnewline
+        Supervisors: &
+        Dr.-Ing. Stefan Köpsell\tabularnewline
+        & Dipl. Inf. Tim Lackorzynski \tabularnewline
+      \end{tabular}{\normalsize }
+    \end{minipage}}
+
+    \maketitle
+  \end{singlespace}
+  \cleardoublepage
+
+  \includepdf{./Aufgabenstellung.pdf}
+  \cleardoublepage
+
+  \section*{\vfill{} \thispagestyle{empty}
+  Erklärung / Declaration}
+
+  Hiermit erkläre ich, dass ich diese Arbeit selbstständig erstellt und keine anderen als die angegebenen Hilfsmittel benutzt habe.
+
+  \bigskip{}
+  \noindent I hereby declare that I completed this work on my own and have not used any resources other than those noted.
+  \bigskip{}
+
+  \noindent Dresden, March 26,  2018
+  \vspace{2.5cm}
+
+  \noindent Jan Sönke Huster \cleardoublepage{}
+
+  \microtypesetup{protrusion=false} % disables protrusion locally in the document
+  \tableofcontents
+  \listoffigures
+  \listoftables
+  \cleardoublepage
+  \glsresetall
+  \microtypesetup{protrusion=true} % enables protrusion locally in the document
+
+  \pagenumbering{arabic}
+  \input{./chapters/introduction.tex}
+  \input{./chapters/related_work.tex}
+  \input{./chapters/design_discussion.tex}
+  \input{./chapters/proposed_modifications.tex}
+  \input{./chapters/implementation.tex}
+  \input{./chapters/evaluation.tex}
+  \input{./chapters/conclusion.tex}
+  \input{./chapters/appendix.tex}
+
+\printglossaries
+
+  \clearpage
+  %\bibliographystyle{IEEEtran}
+  %\bibliography{references}
+
+\printbibliography[heading=bibintoc]
+\end{document}

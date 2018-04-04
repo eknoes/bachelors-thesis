@@ -1,0 +1,95 @@
+%!TEX root=../thesis.tex
+\chapter{Proposed Solution}
+\label{ch:proposal}
+Fragmenting \glspl{SDU} solves the \gls{MACsec} \gls{MTU} problem and is superior compared to \gls{MPDU} fragmentation as discussed in the previous chapter.
+Therefore, this chapter specifies the proposed modifications of \gls{MACsec} to realize transparent \gls{SDU} fragmentation and concatenation.
+Afterwards, the implementation is described.
+
+\section{Specification}
+\begin{figure}
+    \centering
+    \resizebox{\columnwidth}{!}{
+      \input{./figures/flowchart.tex}
+    }
+    \caption[Transmission Flowchart]{Transmission flowchart for proposed modifications}
+    \label{fig:fragmentation-flowchart}
+\end{figure}
+\subsection{Transmission Process}
+
+The following transmission flow is displayed as flowchart in figure~\ref{fig:fragmentation-flowchart} for a better understandability.
+
+When a frame has to be sent using \gls{MACsec} it must be checked at the beginning whether fragmentation has to be applied.
+This is the case if the size of the \gls{SDU} exceeds the maximum payload size of \gls{MACsec} regarding the \gls{MTU} of the underneath layer.
+If the standard \gls{MTU} of 1500 bytes is set, the maximum payload size is 1468 bytes.
+
+The fragmentation process must happen before applying \gls{MACsec}.
+Therefore, the \gls{SDU} must be split.
+The first fragment must be sent with the \acrfull{MF} bit set.
+It must be ensured that the second fragment is processed next by \gls{MACsec}.
+
+If the size of the \gls{SDU} undercuts the maximum payload size of \gls{MACsec}, concatenation must be applied if enabled.
+Therefore, the queue of \gls{MACsec} has to be checked for additional \glspl{SDU} that belong to the same \acrfull{SC}.
+If it contains \glspl{SDU}, they are dequeued and appended to the payload until the maximum payload size is matched or exceeded.
+Source and Destination addresses of these \glspl{SDU} are cut.
+It must be considered that for each additional \gls{SDU} the maximum payload is decreased by two bytes because an extension header must be added.
+The last \gls{SDU} may be fragmented if otherwise the maximum payload size is exceeded.
+The lengths of the additional \glspl{SDU} are saved for the creation of the \gls{SecTAG}.
+
+When creating the \gls{SecTAG} for each additional \gls{SDU} an extension header is appended to the \gls{SecTAG}.
+The extension header contains the size of the corresponding \gls{SDU}.
+The $n$th extension header corresponds to the $n+1$th \gls{SDU}.
+The \acrlong{E} bit is set for all but the last extension headers.
+
+After the fragmentation and concatenation process, \gls{MACsec} is applied as usual.
+\begin{figure}
+    \centering
+    \resizebox{\columnwidth}{!}{
+      \input{./figures/flowchart-receive.tex}
+    }
+    \caption[Receive Flowchart]{Receive flowchart for proposed modifications}
+    \label{fig:receive-flowchart}
+\end{figure}
+\pagebreak
+\subsection{Receiving Process}
+The following receive flow is displayed as flowchart in figure~\ref{fig:receive-flowchart}.
+
+When a frame is received it must be validated as specified by the original \gls{MACsec} standard.
+Except to this validation is the check if both reserved bits of the \gls{SL} field are set as these are now the \gls{E} and \gls{MF} bit.
+
+If the validation is successful, it is checked whether the \gls{E} bit is set.
+If the \gls{E} bit is set, all extension headers are processed and the payload is cut into several \glspl{SDU}.
+The length of each one is derived by the extension headers.
+The Source- and Destination addresses are prepended to each \gls{SDU}.
+If the \gls{E} bit is not set, the payload contains only one \gls{SDU}.
+
+If the fragmentation buffer for the current \gls{SC} contains any data, the first \gls{SDU} must be prepended to this data and the whole, new \gls{SDU} must be delivered.
+If the \gls{MF} bit is set, the last \gls{SDU} has to be saved into the buffer for the current \gls{SC}.
+
+Finally, all remaining \glspl{SDU} are delivered.
+
+\subsection{\acrlong{MPDU}}
+
+\begin{figure}
+  \centering
+  \begin{bytefield}[bitwidth=0.0625\columnwidth]{8}
+    \bitheader{1-8} \\
+      \wordbox[lrt]{1}{Segment Length} \\
+      \bitbox[lrb]{3}{ } & \colorbitbox{lightgray}{4}{} & \bitbox{1}{E}
+  \end{bytefield}
+  \caption[Extension header of modified \acrshort{MACsec}]{Extension header of modified \gls{MACsec}}
+  \label{fig:extension-header}
+\end{figure}
+
+
+The modified \gls{MPDU} is displayed in figure~\ref{fig:concat-sectag}.
+The first unused bit after the \acrlong{SL} field is the \gls{MF} bit.
+This bit indicates whether the payload is fragmented and the next frame contains the next fragment.
+The second unused bit after the \acrlong{SL} field is the \gls{E} bit.
+This bit indicates whether an extension header is appended to the \gls{SecTAG}.
+
+The extension header comprises of an 11 bit long \acrfull{SEGL} field and an \gls{E} bit.
+These are seperated by 4 unused bits.
+The \gls{SEGL} field contains the length of the corresponding \gls{SDU}.
+The $n$th extension header corresponds to the $n + 1$th \gls{SDU}.
+If the \gls{E} bit of an extension header is set, another extension header follows.
+Otherwise, the payload follows.

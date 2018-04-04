@@ -1,0 +1,138 @@
+%!TEX root=../thesis.tex
+\section{Fragmentation in other Protocols}
+\label{ch:fragmentation}
+In the context of computer networking fragmentation happens when data units are too large to be sent through the network.
+If this happens, the datagram is split into several fragments as shown in figure~\ref{fig:fragmentation}.
+These are transmitted independently.
+The receiver rebuilds the datagram out of the received fragments, this process is called reassembly.
+
+In the following sections, three different protocols are examined regarding fragmentation.
+The \gls{IP} is widespread and realizes fragmentation on layer 3.
+\gls{WLAN} is a common layer 2 protocol, which implements fragmentation.
+Furthermore, \gls{LTE} realizes fragmentation and concatenation on layer 2.
+Concatenation is the process of appending several datagrams to one joint datagram.
+
+\begin{figure}
+    \centering
+    \def\svgwidth{0.5\columnwidth}
+    \input{./figures/fragmentation.pdf_tex}
+    \caption[Datagram Fragmentation]{A datagram is fragmented into two fragments}
+    \label{fig:fragmentation}
+\end{figure}
+\pagebreak
+\subsection{\acrlong{IP} Fragmentation}
+\label{sec:ip-fragmentation}
+The \gls{IP} fragments internet datagrams into packets matching the path \gls{MTU} as already mentioned in section~\ref{par:layer-3}.
+The protocol is specified in~\cite{rfc791}.
+
+Three fields of the \gls{IP} header are relevant for the fragmentation and reassembly process: the \gls{MF} bit, the Fragment-Offset field and the Identification field.
+
+The Identification field is two bytes long and unique for the source-destination pair.
+It is determined by the originating protocol that sends internet datagrams and is used to identify the fragmented datagram.
+A \gls{MF} bit indicates that the packet is not the last fragment of the fragmented internet datagram.
+The fragments position in the datagram is described by a 13 bit long Fragment-Offset field.
+It indicates the number of preceding 8 bytes long blocks.
+So a Fragment-Offset field with the value of one means that the preceding data is 8 bytes long.
+This field allows to reassemble fragments even if they do not arrive in the transmitted order.
+
+Regarding figure~\ref{fig:fragmentation} the first packet---carrying Fragment I in its payload---has the \gls{MF} bit set and the Fragment-Offset is zero.
+The second packet---carrying Fragment II in its payload---has the \gls{MF} bit set to zero and the Fragment-Offset is set to the position of this fragment in the datagram.
+The Identification field is the same for both packets, as both contain fragments of the same datagram.
+
+The detailed process of the \gls{IP} fragmentation and reassembly process is described in~\cite[section 2.3]{rfc791}
+
+\subsection{\acrshort{IEEE} 802.11 \acrlong{WLAN}}
+\gls{WLAN} is a standard for "wireless connectivity [...] within a local area"~\cite[sec. 1.1]{ieeewlan}.
+The standard defines several physical layers and a \gls{MAC} layer which contains fragmentation.
+It is specified by the \gls{IEEE} in~\cite{ieeewlan}.
+
+Due to the fact that \gls{WLAN} uses a shared medium, collision probability and the probability of interferences is higher compared to Ethernet.
+Fragmentation can be used to improve the reliability of \gls{WLAN} \cite[sec. 4.4.3]{tanenbaum2011networks}.
+
+Similar to fragmentation in \gls{IP}, which is described prior to this section, the header of a \gls{WLAN} frame has a \gls{MF} bit.
+In addition to that, a Sequence Control field exists, which comprises of a Fragment number field and a Sequence number field.
+The Sequence number field identifies the datagram that is fragmented; the Fragment number field identifies the individual fragments.
+The first fragment has the Fragment number field set to zero.
+It is incremented with every following fragment.
+The Sequence number field is the same for every fragment that is part of the same datagram.
+It is comparable to the Identification field of \gls{IP}.
+\pagebreak
+\subsection{\acrlong{LTE}}
+\label{sec:lte}
+The \gls{LTE} standard is defined by the 3GPP---"a collaboration between telecommunications associations"~\cite{tanenbaum2011networks}---in various specifications~\cite{3gppr8}.
+It is a wireless comunication technology used for mobile devices that has fragmentation and concatenation implemented.
+This means that---additionally to fragmentation---the payload of several datagrams can be concatenated into one frame.
+Fragmentation in the \gls{LTE} standard is named segmentation, but this thesis continues the usage of the term fragmentation to avoid confusion.
+
+\begin{figure}
+    \centering
+    \def\svgwidth{\columnwidth}
+    \input{./figures/rlc.pdf_tex}
+    \caption[RLC Fragmentation and Concatenation]{Three \gls{RLC} \glspl{SDU} are transformed into two \gls{RLC} \glspl{PDU}.
+    K, K+1 and the first fragment of K+2 are concatenated, K+2 is additionally fragmented.\footnotemark
+    }
+    \label{fig:RLC}
+\end{figure}
+\footnotetext{Figure from~\url{http://www.tutorialspoint.com/lte/lte_layers_data_flow.htm}}
+
+The process of fragmentation and concatenation in \gls{LTE} is shown in figure~\ref{fig:RLC}.
+The \gls{RLC} layer, which is defined in~\cite{lterlc}, is responsible for fragmentation and concatenation in \gls{LTE}.
+This layer lays between the physical layer and the layer which includes \gls{IP}, like layer 2 of the \gls{OSI} model.
+
+The \gls{RLC} layer in \gls{LTE} has different modes but to understand fragmentation and concatenation in \gls{LTE} this distinction is not relevant and, therefore, not deepened here.
+In the following the header of the \gls{UM} \gls{PDU} is described to understand how fragmentation and concatenation work in general in \gls{LTE}.
+
+\subsubsection{\acrlong{UMD} \acrshort{PDU}}
+The header of an \gls{UMD} \gls{PDU} comprises of two parts: a fixed and an optional extension part.
+Furthermore, the \gls{PDU} has one data field which can contain several \glspl{SDU} as shown in figure~\ref{fig:RLC}.
+
+\paragraph{Fixed part}
+The fixed part of the header is displayed in figure~\ref{fig:umd-fixed}.
+It contains a \gls{FI} field, an \gls{E} bit and a \gls{SN} field.
+
+\begin{figure}[!htbp]
+  \centering
+  \begin{bytefield}[bitwidth=0.08\columnwidth]{8}
+    \bitheader{1-8} \\
+    \bitbox{2}{\gls{FI}} & \bitbox{1}{\gls{E}} & \bitbox{5}{\gls{SN}}
+  \end{bytefield}
+  \caption[Fixed part of an \acrshort{UMD} header]{The fixed part of an \gls{UMD} header.}
+  \label{fig:umd-fixed}
+\end{figure}
+
+The \gls{FI} field shows, whether the first and last \gls{RLC} \glspl{SDU} are fragmented or not.
+The first bit is set, if the first byte of the data field is not equal to the first byte of a \gls{RLC} \gls{SDU}.
+The second bit is set, if the last byte of the data field is not equal to the last byte of a \gls{RLC} \gls{SDU}.
+
+For example, the \gls{FI} field of the left \gls{RLC} \gls{PDU} of figure~\ref{fig:RLC} is $01$ because the first \gls{SDU} is not fragmented, but the last.
+
+If the \gls{E} bit of the header is set, an extension part is following. Otherwise the data field follows.
+
+The \gls{SN} field is the identifier of an \gls{UMD} \gls{PDU} and is incremented for the following \gls{PDU}.
+This is necessary to reassemble the correct \gls{SDU} fragments together.
+
+\paragraph{Extension part}
+If more than one data field is present---this means concatenation is used---one or more extension parts exist in the \gls{PDU} header.
+This extension part, displayed in figure~\ref{fig:umd-extension}, contains an \gls{E} bit and a \gls{LI} field.
+The \gls{E} bit indicates, whether another extension part or the data field follows.
+The \gls{LI} field contains the length of the associated data field.
+
+\begin{figure}[!htbp]
+  \centering
+  \begin{bytefield}[bitwidth=0.08\columnwidth]{12}
+    \bitheader{1-12} \\
+    \bitbox{1}{\gls{E}} & \bitbox{11}{\gls{LI}}
+  \end{bytefield}
+  \caption[Extension part of an \acrshort{UMD} header]{The extension part of an \gls{UMD} header.}
+  \label{fig:umd-extension}
+\end{figure}
+
+If concatenation happens, for every---except the first---concatenated \gls{SDU} an extension part is added to the header.
+This means that for $k$ concatenated \glspl{SDU} the header comprises of one fixed part and $k - 1$ extension parts.
+The $n$th extension part is associated with the $n + 1$th \gls{SDU}.
+For example, in figure~\ref{fig:RLC} the header of the left \gls{RLC} \gls{PDU} has one fixed part and two extension parts.
+
+The recipient is able to reassemble the fragmented and concatenated \glspl{SDU} with the header information.
+With the information of the \gls{SN} field, the order can be reconstructed.
+By reading the extension header, the \gls{PDU} can be split up into the different \glspl{SDU}.
+The \gls{FI} field describes, wether these \glspl{SDU} are fragments or not, if so the related fragments are concatenated.

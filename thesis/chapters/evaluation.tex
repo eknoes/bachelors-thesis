@@ -1,0 +1,214 @@
+%!TEX root=../thesis.tex
+\chapter{Evaluation}
+\label{ch:eva}
+% Intel(R) Core(TM) i5-4590 CPU @ 3.30GHz
+% Intel® Ethernet Connection I217-LM
+% 16GB RAM
+% CAT 5E Gigabit Ethernet
+
+% Erst Ziele, warum? Messwerte -> Setup -> Ergebnisse -> Auswertung -> Bewertung
+The problem of a decreased \gls{MTU} when using \gls{MACsec} is solved with the proposed modifications of chapter~\ref{ch:design}, which were implemented as described in section~\ref{ch:implementation}.
+
+To assess, if these modifications lead to significant performance changes, several measurments were made.
+These are compared with the solution of using jumbo frames, which is also a possibility to mitigate the problem of a lower \gls{MTU}.
+This solution is considered to be optimal but not applicable in the given scenario.
+
+As the modified driver is sending two frames instead of one considering a large frame, \acrfull{RTT} might be affected.
+Furthermore, an additional \gls{MACsec} header must be sent, which might affect the bandwidth.
+As a third measurement the CPU usage during the bandwidth test is recorded, to see if the fragmentation and reassembly has a significant impact on it.
+
+For the evaluation two computers are directly connected to each other with a Cat5e network cable.
+Table~\ref{tab:eva-hardware} contains the hardware specifications of both machines.
+\begin{table}[h]
+  \centering
+  \begin{tabular}{l  r}
+    Processor & Intel i5-4590 3.3GHz\\
+    RAM & 16GB\\
+    Network interface & Fast Ethernet \& Gigabit Ethernet\\
+    Operating System & Arch Linux\footnotemark with linux kernel 4.15.7\\
+  \end{tabular}
+  \caption{Specifications of the machines used for the evaluation}
+  \label{tab:eva-hardware}
+\end{table}
+\footnotetext{\url{https://www.archlinux.org/}}
+
+\section{Experiment}
+Evaluated is the \gls{RTT} and bandwidth.
+For the measurement of the \gls{RTT} the command line tool ``ping'' is used.
+The bandwidth is measured with ``iperf3''\footnote{\url{http://software.es.net/iperf/}}.
+
+The test cases are:
+\begin{itemize}
+  \item Ethernet with \gls{MTU} of 1468 bytes, 1500 bytes and 2936 bytes
+  \item \gls{MACsec} with \gls{MTU} of 1468 bytes, 1500 bytes and 2936 bytes by enabling Jumbo Frames
+  \item Modified \gls{MACsec} with \gls{MTU} of 1468 bytes, 1500 bytes and 2936 bytes
+\end{itemize}
+
+The \gls{MTU} of 1468 bytes is chosen because it is the standard \gls{MACsec} \gls{MTU}.
+With this \gls{MTU} the modified \gls{MACsec} does not do any fragmentation.
+The \gls{MTU} of 1500 bytes is chosen because it is the standard ethernet \gls{MTU}.
+And with an \gls{MTU} of 2936 bytes the modified \gls{MACsec} version sends two full frames, instead of one full and one small frame as in the setting with an \gls{MTU} of 1500 bytes.
+
+The measurement is automated with a shell script, which runs on one of both machines.
+In the following, this machine is referred to as sender and the other one as receipient.
+
+In the beginning, the sender sets the configuration according to the current test case.
+After that, it configures the receipient and starts an iperf3 server via ssh.
+A single bandwidth measurement performs a 10~second long iperf3 test, which builds up a \gls{TCP} connection and measures the average bandwidth.
+This test is repeated 1000 times for each test case, except the Ethernet case with a \gls{MTU} of 2936 bytes where it is repeated 100 times.
+The ethernet test case is interesting for comparability but plays a minor role for the assessment of the \gls{MACsec} modifications.
+For the \gls{RTT} measurment an adaptive ping is started, which sends and receives 50000 \gls{ICMP} messages.
+Usually, ping sends one echo request every second but with the adaptive ping it sends the next request as soon as the last was acknowledged.
+
+\section{Measurements}
+\subsection{\acrlong{RTT}}
+\begin{figure}
+    \centering
+    \def\svgwidth{\columnwidth}
+    \input{./figures/rtt-boxplot.pdf_tex}
+    \caption[\acrlong{RTT} experiment]{\gls{RTT} measurements for the different test cases.\\$n=50000$}
+    \label{fig:rtt-test}
+\end{figure}
+
+The results of the \gls{RTT} are displayed in figure~\ref{fig:rtt-test} and table~\ref{tab:rtt-data}.
+It is noticeable that two test cases which used jumbo frames---Ethernet and \gls{MACsec} with an \gls{MTU} of 2936 bytes---have a significant higher \gls{RTT} (0.44ms to 0.52ms) and higher variance, compared with the remaining test cases (0.14ms to 0.17ms).
+
+The reasons for this are not further researched in this thesis but there are several publications which detect a high latency when using jumbo frames~\cite{chelseajumbo}.
+
+To make the results of the other test cases more visible, both described cases are removed in figure~\ref{fig:rtt-test-zoom}.
+\begin{figure}
+    \centering
+    \def\svgwidth{\columnwidth}
+    \input{./figures/rtt-boxplot-zoom.pdf_tex}
+    \caption[\acrlong{RTT} experiment (clipped)]{Clipped \gls{RTT} measurements for the different test cases, full results visible in figure~\ref{fig:rtt-test}.\\$n=50000$}
+    \label{fig:rtt-test-zoom}
+\end{figure}
+
+The \gls{RTT} of Ethernet with an \gls{MTU} of 1468 bytes (0.139ms) respectively 1500 bytes (0.14ms) is lower than the \gls{RTT} of the test cases where \gls{MACsec} is used.
+It can be assumed that this is a result of the cryptographic operations when using \gls{MACsec}.
+
+It is noticeable that the modified \gls{MACsec} (0.155ms) has a similar \gls{RTT} as the unmodified \gls{MACsec} (0.154ms) with a frame size of 1468 bytes.
+Here, no fragmentation happens.
+When the modified \gls{MACsec} does fragmentation with a frame size of 1500 bytes, the \gls{RTT} increases to 0.166ms.
+Compared to \gls{MACsec} with jumbo frames and a \gls{MTU} of 1500 bytes (0.155ms) this is an increase of 7.1\%.
+It is assumed that this is the result of having to send two frames instead of one.
+The modified \gls{MACsec} with an \gls{MTU} of 2936 bytes has an increased \gls{RTT} (0.174ms), which might be the result of a bigger frame which has to be sent.
+But compared to \gls{MACsec} with jumbo frames and an \gls{MTU} of 2936 bytes it is significant faster.
+
+\subsection{Bandwidth}
+\label{sec:bandwidth-eva}
+\begin{figure}
+    \centering
+    \def\svgwidth{\columnwidth}
+    \input{./figures/bandwidth-bar.pdf_tex}
+    \caption[Bandwidth experiment bar chart]{Bandwidth measurements for the different test cases.\\$n=1000$, except for Ethernet with MTU 2936 $n=100$}
+    \label{fig:bandwidth-test}
+\end{figure}
+The results of the bandwidth test are shown in figure~\ref{fig:bandwidth-test} and table~\ref{tab:bandwidth-data}.
+
+The data shows that, independent of the test case, the variance is small.
+All test cases where no \gls{MACsec} is used reach a higher bandwidth compared with the other test cases which had the same \gls{MTU}.
+This decrease when using \gls{MACsec} might be the result of the additional 32 bytes long header, which has to be sent in each frame.
+
+\gls{MACsec} (907.4 Mbit/s) and the modified \gls{MACsec} (907.38 Mbit/s) reach a similar bandwidth when using a frame size of 1468 bytes.
+When the modified \gls{MACsec} does fragmentation, the bandwidth decreases compared to \gls{MACsec} with the same \gls{MTU} of 1500 bytes respectively 2936 bytes.
+In the fragmentation cases a second Ethernet and \gls{MACsec} header have to be sent which lead to this decrease.
+The modified \gls{MACsec} reaches 95\% respectively 97\% of the bandwidth that \gls{MACsec} with the same \gls{MTU} creates.
+
+\subsection{CPU Usage}
+The results of the CPU usage during the bandwidth test are shown in figure~\ref{fig:cpu-test} and table~\ref{tab:cpu-data}.
+As the data is generated during the bandwidth test, the CPU usage also depends on the size of this data.
+
+During the tests without \gls{MACsec}, the CPU usage is significantly higher (5.55\% to 5.16\%) than during the tests where \gls{MACsec} is applied (0.96\% to 2.29\%).
+Furthermore, it is noticeable that the CPU usage during the tests with the modified \gls{MACsec} is in the same order of magnitude as during the use of \gls{MACsec}.
+
+There is at least no obvious reason, why during the tests without the usage of \gls{MACsec} the CPU was used significantly more.
+These were the cases, where more data for the bandwidth test was generated due to a better performance as evaluated in section~\ref{sec:bandwidth-eva}.
+For investigation of this reason, a normalization of the CPU usage result was made, which is displayed in figure~\ref{fig:cpu-test-norm}.
+But even here the results are significantly worse.
+The results of the CPU usage measurement need more investigation.
+
+\begin{figure}
+    \centering
+    \def\svgwidth{\columnwidth}
+    \input{./figures/cpu-usage-boxplot.pdf_tex}
+    \caption[CPU Usage experiment]{CPU usage during the different test cases regarding the bandwidth test.\\$n=1000$, except for Ethernet with MTU 2936 $n=100$}
+    \label{fig:cpu-test}
+\end{figure}
+\begin{figure}
+    \centering
+    \def\svgwidth{\columnwidth}
+    \input{./figures/cpu-bandwidth-boxplot.pdf_tex}
+    \caption[CPU Usage normalized to sent megabytes]{Sent megabytes divided by CPU usage in percent during bandwidth test.\\$n=1000$, except for Ethernet with MTU 2936 $n=100$}
+    \label{fig:cpu-test-norm}
+\end{figure}
+
+\section{Security Evaluation}
+This thesis assumes that \gls{MACsec} is secure.
+It provides integrity, confidentiality, data origin authenticity, and protection against replay attacks.
+
+The proposed modifications alter the \gls{SecTAG}.
+Two reserved bits are replaced by the \acrlong{MF} and \acrlong{E} bit.
+Furthermore, additional extension headers may be appended to the \gls{SecTAG}.
+
+These modifications---which are explained in further detail in chapter~\ref{ch:proposal}---are evaluated regarding security in the following paragraphs.
+
+\subsection{Confidentiality}
+\gls{MACsec} provides confidentiality by encrypting the secure payload.
+This does not include the \gls{SecTAG}.
+
+If fragmentation is applied, the \gls{SDU} is split and each part is the secure payload of one \gls{MPDU}.
+If concatenation is applied, several \glspl{SDU} build the secure payload of one \gls{MPDU}.
+As the secure payload is constructed before \gls{MACsec} is applied, it still provides the same confidentiality regarding the encryption of the transmitted data.
+The encryption process as well as the used algorithms or keys are not modified.
+
+The \gls{SecTAG} is extended with information of whether a fragment follows and the length of each concatenated \gls{SDU}.
+The number and corresponding length of transmitted \glspl{SDU} is obtainable for an attacker, when the unmodified \gls{MACsec} is used.
+Hence, no additional information is disclosed.
+
+Therefore, confidentiality is not weakened by the proposed modifications.
+
+\subsection{Integrity}
+\gls{MACsec} provides integrity by building a message authentication code named \gls{ICV}.
+The \gls{ICV} includes the source and destination adresses, the \gls{SecTAG} and the secure payload.
+
+Fragmented as well as concatenated \glspl{SDU} are always contained in the secure payload of an \gls{MPDU} and, therefore, integrity protected by the \gls{ICV}.
+The modifications of the \gls{SecTAG} are also protected by the \gls{ICV}.
+The process defined in chapter~\ref{ch:proposal} specifies that on transmit the modifications and the secure payload are built before calculating the \gls{ICV}.
+Furthermore, on receive the \gls{ICV} is verified before the data is processed.
+Thus, an outside attacker has no possibility to modify data undetectable.
+This is visible in the flowcharts describing the transmission (figure~\ref{fig:fragmentation-flowchart}) and receive (figure~\ref{fig:receive-flowchart}) process.
+
+Therefore, the integrity is not weakened by the proposed modifications.
+The data origin authenticity is guaranteed by integrity and authentication through the \acrlong{KaY}.
+As integrity is not weakened and the \acrlong{KaY} is not part of \gls{MACsec} standard data origin authenticity is still ensured.
+
+\subsection{Availability}
+The proposed modifications of \gls{MACsec} specify that received data is verified by \gls{MACsec} before the process of reassembly and deconcatenation occurs.
+Therefore, outside attackers cannot exploit the introduced behavior, as it is assumed that \gls{MACsec} is secure.
+On transmission and receive, the proposed modifications perform similar to \gls{MACsec} as shown in the previous sections.
+Inside attackers which participate legitimately in the communication can exploit the introduced behavior regarding availability, for example by sending frames which have the \gls{MF} bit set.
+This leads to a reassembly of not associated fragments and therefore illegable data is delivered.
+But as \gls{MACsec} does not prevent insider attacks, this is not considered.
+
+Therefore, the availability regarding outside attackers is not weakened by the proposed modifications.
+
+\subsection{Replay protection}
+\gls{MACsec} provides replay protection by using incrementing packet numbers.
+Packets with a number which was already received are dropped\footnote{The exact behavior is configurable}.
+This behavior is not changed by the modifications, the check of the packet number is done before the modifications are applied.
+Furthermore, the field containing and the build of the packet number is not changed.
+
+Therefore, the replay protection of \gls{MACsec} is not weakened by the proposed modifications.
+\pagebreak
+\section{Results}
+The results of the performance evaluation and security evaluation are satisfying.
+
+The \gls{RTT} results are as expected if fragmentation is applied the \gls{RTT} just slightly increases.
+Additionally, the results of the bandwidth test shows that the modified \gls{MACsec} still reaches 95\% of the results of \gls{MACsec} with jumbo frames.
+The measurements of the CPU usage are not completely comprehensible but the results of using modified \gls{MACsec} are in the same order of magnitude as unmodified \gls{MACsec}.
+The security evaluation shows that the proposed modifications maintain the security level of \gls{MACsec}.
+
+The proposed modifications appear to successfully solve the given problem without decreasing the performance significantly, as demonstrated by the prior evaluation.
+A working implementation as a linux kernel module is provided.
+This outcome leads to the conclusion that functionality of the proposed solution is given.

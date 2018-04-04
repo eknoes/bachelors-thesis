@@ -1,0 +1,21 @@
+%!TEX root=../thesis.tex
+\chapter{Conclusion}
+The goal of this thesis was to develop a transparent fragmentation solution while using \gls{MACsec} to mitigate the problems of a decreased \gls{MTU}.
+It is required to not mitigate the problem by the use of jumbo frames or fragmentation in upper layers.
+Three established fragmentation processes in computer networks were presented.
+Two general approaches for the given problem were deduced and discussed.
+The approach of fragmenting \glspl{MPDU} turned out to be vulnerable, so the approach of fragmenting \glspl{SDU} was choosen.
+To optimize this solution a concatenation scheme was developed.
+The fragmentation solution was implemented in C for the linux kernel.
+The concatenation scheme was not implemented.
+The implemented algorithm in \gls{MACsec} was then evaluated regarding performance and security.
+For evaluation of performance the implementation was deployed to two physical machines.
+The results of this evaluation were compared to the solution of using jumbo frames, which is considered as an optimal solution.
+Here, the proposed solution appeared to be successful, as the performance results were just slightly below the results of the optimum.
+Furthermore, the security evaluation showed that the proposed solution is secure.
+
+The solution of fragmenting \glspl{SDU} solves the problem of a decreased \gls{MTU} when using \gls{MACsec}.
+It performs well---as the evaluation showed---and maintains the security which is established by \gls{MACsec}.
+The developed improvement of a concatenation process appeared to be an optimization, which could be implemented and evaluated by future work.
+Moreover, the field of other improvements and optimizations for \gls{MACsec} can be researched.
+The behavior when using Jumbo Frames seems to be an interesting topic which can be investigated, as the evaluation detected some notable deviations from expected behavior.

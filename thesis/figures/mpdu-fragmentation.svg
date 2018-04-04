@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:xhtml="http://www.w3.org/1999/xhtml"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   style="background-color: rgb(255, 255, 255);"
+   width="235px"
+   height="171px"
+   version="1.1"
+   content="&lt;mxfile userAgent=&quot;Mozilla/5.0 (X11; Linux x86_64; rv:57.0) Gecko/20100101 Firefox/57.0&quot; version=&quot;7.9.5&quot; editor=&quot;www.draw.io&quot; type=&quot;device&quot;&gt;&lt;diagram id=&quot;de28d96a-a1db-9968-8a5e-5055b79a010b&quot; name=&quot;Page-1&quot;&gt;zVdNc9owEP01PpaxJRucY0M+2pl2JjMc2h5Ve2OrsS1GlgP011eyV9hGIdACTbggPa12pbdvV+DRebm+l2yZfxUpFB7x07VHbzxCgpBM9ZdBNh0y8xHIJE/RqAcW/Dcg6CPa8BTqkaESolB8OQYTUVWQqBHGpBSrsdmjKMZRlywDB1gkrHDRbzxVeYfGkd/jn4BnuY0c+LjykyVPmRRNhfE8Qh/bT7dcMusL7eucpWI1gOitR+dSCNWNyvUcCsOtpa3bd7dndXtuCZU6ZgOmpVYbe/X28GCWfY9e56os9DDQQ1hz9R1hM/5hxpNZZKaVkpt2beL7sQWMwQeNUKqRX6DUBhPNGiU0JKTKRSYqVnwRYmmjmJ0PIHkJCiSG6w4JqZO0/poI1aKRCVoRFA6TGaAV3VKspQtCx5AbbSKhYIo/j70z1FC2tet51AOk8mVaMfQzKxp0esMUyyQrD/C9yrmCxZK1d1jp4hrnAN2CVLB+nQr3kriBXKH0sDQpTle9zolVcz7Q+NQ/nRbq0HInWVaakxP/87ujJghdbgJyIW7CV7l5e3JCEh0kJ74QNzPn9qYXLHBaiUp/XR9uXJNo0LqCv2hKZ+s/5D/1n9gRk8tglX40L6WeJQWra57sY226w5oZn7FDu3QMFBW9oCiLHc0aRngQvC0mW+3xuNr1j5Sxi+6kuGv4hu44CoM9bcM66hTgOGqTuL32UXm1kU5K7PaxHj7U+p2OTn9+h1oP3zK5uzm5+sfcUrojEnK53AZnzG0wSKf9HTad7UuwrXW9KxgWOzo5b72/I5WcrQVcTiZ62v8b6Mz7v1z09g8=&lt;/diagram&gt;&lt;/mxfile&gt;"
+   id="svg50"
+   sodipodi:docname="mpdu-fragmentation.svg"
+   inkscape:version="0.92.2 5c3e80d, 2017-08-06">
+  <metadata
+     id="metadata54">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1920"
+     inkscape:window-height="1013"
+     id="namedview52"
+     showgrid="false"
+     inkscape:zoom="2"
+     inkscape:cx="95.093505"
+     inkscape:cy="107.86146"
+     inkscape:window-x="1080"
+     inkscape:window-y="396"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g48"
+     showguides="true"
+     inkscape:guide-bbox="true" />
+  <defs
+     id="defs2">
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Mend"
+       style="overflow:visible;"
+       inkscape:isstock="true">
+      <path
+         id="path1005"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.4) rotate(180) translate(10,0)" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible;"
+       id="marker2585"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend">
+      <path
+         transform="scale(0.8) rotate(180) translate(12.5,0)"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path2583" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lstart"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Lstart"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path870"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.8) translate(12.5,0)" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible;"
+       id="marker1188"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend">
+      <path
+         transform="scale(0.8) rotate(180) translate(12.5,0)"
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         id="path1186" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Lend"
+       orient="auto"
+       refY="0.0"
+       refX="0.0"
+       id="Arrow1Lend"
+       style="overflow:visible;"
+       inkscape:isstock="true">
+      <path
+         id="path873"
+         d="M 0.0,0.0 L 5.0,-5.0 L -12.5,0.0 L 5.0,5.0 L 0.0,0.0 z "
+         style="fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1;fill:#000000;fill-opacity:1"
+         transform="scale(0.8) rotate(180) translate(12.5,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mend-3"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path1005-6"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow1Mend-3-5"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path1005-6-3"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1.00000003pt;stroke-opacity:1"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)" />
+    </marker>
+  </defs>
+  <g
+     transform="translate(0.5,0.5)"
+     id="g48">
+    <rect
+       x="5.8580317"
+       y="15.100494"
+       width="200.2948"
+       height="29.794796"
+       pointer-events="none"
+       id="rect8"
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.70520341" />
+    <g
+       transform="translate(79.030655,22.233892)"
+       id="g14">
+      <switch
+         id="switch12">
+        <foreignObject
+           style="overflow:visible;"
+           pointer-events="all"
+           width="54"
+           height="12"
+           requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility">
+          <xhtml:div
+             style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; vertical-align: top; width: 55px; white-space: nowrap; overflow-wrap: normal; text-align: center;">
+            <xhtml:div
+               style="display:inline-block;text-align:inherit;text-decoration:inherit;">Datagram</xhtml:div>
+          </xhtml:div>
+        </foreignObject>
+        <text
+           x="27"
+           y="12"
+           font-size="12px"
+           id="text10"
+           style="font-size:12px;font-family:Helvetica;text-anchor:middle;fill:#000000">MPDU</text>
+      </switch>
+    </g>
+    <g
+       id="g5140">
+      <rect
+         style="fill:#ffffff;stroke:#000000;stroke-width:0.70516771"
+         id="rect16"
+         pointer-events="none"
+         height="29.794832"
+         width="120.16456"
+         y="70.102585"
+         x="0.70058388" />
+      <g
+         id="g22"
+         transform="translate(141.8555,76.066001)">
+        <switch
+           id="switch20">
+          <foreignObject
+             requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+             height="12"
+             width="58"
+             pointer-events="all"
+             style="overflow:visible;">
+            <xhtml:div
+               style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; vertical-align: top; width: 59px; white-space: nowrap; overflow-wrap: normal; text-align: center;">
+              <xhtml:div
+                 style="display:inline-block;text-align:inherit;text-decoration:inherit;">Fragment I</xhtml:div>
+            </xhtml:div>
+          </foreignObject>
+          <text
+             style="font-size:12px;font-family:Helvetica;text-anchor:middle;fill:#000000"
+             id="text18"
+             font-size="12px"
+             y="12"
+             x="29">Fragment</text>
+        </switch>
+      </g>
+      <rect
+         style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:0.70516771"
+         id="rect24"
+         pointer-events="none"
+         height="29.794832"
+         width="80.109703"
+         y="70.102585"
+         x="131.20058" />
+      <g
+         id="g30"
+         transform="translate(29.382929,76.066001)">
+        <switch
+           id="switch28">
+          <foreignObject
+             requiredFeatures="http://www.w3.org/TR/SVG11/feature#Extensibility"
+             height="12"
+             width="61"
+             pointer-events="all"
+             style="overflow:visible;">
+            <xhtml:div
+               style="display: inline-block; font-size: 12px; font-family: Helvetica; color: rgb(0, 0, 0); line-height: 1.2; vertical-align: top; width: 62px; white-space: nowrap; overflow-wrap: normal; text-align: center;">
+              <xhtml:div
+                 style="display:inline-block;text-align:inherit;text-decoration:inherit;">Fragment II</xhtml:div>
+            </xhtml:div>
+          </foreignObject>
+          <text
+             style="font-size:12px;font-family:Helvetica;text-anchor:middle;fill:#000000"
+             id="text26"
+             font-size="12px"
+             y="12"
+             x="31">Fragment</text>
+        </switch>
+      </g>
+    </g>
+    <path
+       d="M 107 60 L 107 60"
+       fill="none"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="none"
+       id="path32" />
+    <path
+       d="M 107 60 L 107 60 L 107 60 L 107 60 Z"
+       fill="#000000"
+       stroke="#000000"
+       stroke-miterlimit="10"
+       pointer-events="none"
+       id="path34" />
+    <rect
+       x="12.563675"
+       y="-40.281857"
+       width="186.88351"
+       height="29.818542"
+       pointer-events="none"
+       id="rect8-6"
+       style="fill:#ffffff;stroke:#000000;stroke-width:0.68145639" />
+    <text
+       x="110.02642"
+       y="-20.335732"
+       font-size="12px"
+       id="text10-7"
+       style="font-size:11.59591198px;font-family:Helvetica;text-anchor:middle;fill:#000000;stroke-width:0.966326"
+       transform="scale(0.96555646,1.0356722)">Oversized SDU</text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:2, 2;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+       d="M 106.01472,-10.696113 V 12.86"
+       id="path2976"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:2, 2;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Mend-3)"
+       d="M 60.782863,45.129848 V 68.685961"
+       id="path2976-7"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:2, 2;stroke-dashoffset:0;stroke-opacity:1;marker-end:url(#Arrow1Mend-3-5)"
+       d="M 171.25543,44.422742 V 67.978855"
+       id="path2976-7-5"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+  </g>
+</svg>

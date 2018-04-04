@@ -1,0 +1,61 @@
+%!TEX root=../thesis.tex
+%\documentclass{article}
+%\usepackage{geometry}
+%\usepackage{tikz}
+%\usetikzlibrary{matrix,calc,shapes,positioning}
+%\begin{document}
+  \begin{tikzpicture}
+    [node distance=5.5cm,
+    startstop/.style={rectangle, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=pastelred},
+    decision/.style={diamond, minimum width=4cm, minimum height=4cm, text centered, draw=black, fill=pastelgreen},
+    process/.style={rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=pastelorange, inner sep=.2cm}]
+    \node (start) [circle,fill=black,minimum size=.5cm,label=above:SDU in queue] {};
+    %\node (start) [startstop, below=1cm of begin] {SDU should be sent};
+    %\draw[-{Latex[width=3mm]}] (begin) -- (start);
+    \node (frame-size) [decision, right=4cm of start,align=center] {Compare frame\\size to MTU};
+    \draw[-{Latex[width=3mm]}] (start) -- (frame-size);
+
+    \node (concat-enabled) [decision, below=1cm of frame-size, align=center] {Concatenation\\ enabled?};
+    \draw[-{Latex[width=3mm]}] (frame-size) -- node[anchor=east,align=center,yshift=.1cm] {Undercuts\\MTU} (concat-enabled);
+
+    \node (sdu-queue) [decision, below=1cm of concat-enabled, align=center] {SDU with\\same SC\\enqueued?};
+    \draw[-{Latex[width=3mm]}] (concat-enabled) -- node[anchor=east,yshift=.3cm]{true} (sdu-queue);
+
+    \node (dequeue) [process, below=1cm of sdu-queue] {Dequeue SDU};
+    \draw[-{Latex[width=3mm]}] (sdu-queue) -- node[anchor=east,yshift=.3cm]{true} (dequeue);
+    \node (cut-source) [process, left=1.5cm of dequeue, align=center] {Strip source\\ and destination\\of SDU};
+    \draw[-{Latex[width=3mm]}] (dequeue) -- (cut-source);
+    \node (append) [process, above=1cm of cut-source, align=center] {Append SDU as new\\segment to payload};
+    \draw[-{Latex[width=3mm]}] (cut-source) -- (append);
+    \node (save-length) [process, above=1cm of append, align=center] {Save\\ segment length};
+    \draw[-{Latex[width=3mm]}] (append) -- (save-length);
+    \draw[-{Latex[width=3mm]}] (save-length) |- (frame-size);
+
+    \node (split-sdu) [process, right=5cm of frame-size, align=center,yshift=3cm] {Trim frame to MTU\\length, save remainder\\as second fragment};
+    \draw[-{Latex[width=3mm]}] (frame-size) |- node[anchor=east, align=center,yshift=-.5cm]{Exceeds\\MTU} (split-sdu);
+    \node (copy-src) [process, below=1cm of split-sdu, align=center] {Copy source and destination\\to second fragment};
+    \node (enqueue-fragment) [process, below=1cm of copy-src, align=center] {Enqueue second\\fragment as\\next SDU};
+    \draw[-{Latex[width=3mm]}] (split-sdu) -- (copy-src);
+    \draw[-{Latex[width=3mm]}] (copy-src) -- (enqueue-fragment);
+    \node (save-mf) [process, below=1cm of enqueue-fragment, align=center] {Save More-Fragments bit\\for SecTAG creation};
+    \node (end) [startstop, right of=sdu-queue] {Apply MACsec};
+
+    \node (stop) [circle,minimum size=.5cm, line width=.01cm, fill=black, below=1cm of end] {};
+    \node (stop2) at (stop) [circle,minimum size=.7cm, line width=.01cm, draw=black,label=below:Transmit MPDU] {};
+
+    \draw[-{Latex[width=3mm]}] (frame-size) -| node[anchor=south,pos=.0,xshift=1.2cm] {Matches MTU} (end);
+    \draw[-{Latex[width=3mm]}] (concat-enabled) -| node[anchor=south,pos=.0,xshift=0.4cm]{false} (end);
+    \draw[-{Latex[width=3mm]}] (sdu-queue) -- node[anchor=south,pos=.0,xshift=0.4cm]{false} (end);
+
+    \draw[-{Latex[width=3mm]}] (enqueue-fragment) -- (save-mf);
+    \draw[-{Latex[width=3mm]}] (save-mf) |- (end);
+    \draw[-{Latex[width=3mm]}] (end) -- (stop2);
+
+    \begin{pgfonlayer}{bg}
+      \node at (save-length) [draw,color=white,fill=gray!20,rectangle,yshift=-1.5cm,xshift=2cm,minimum width=11cm,minimum height=9.5cm,label={[xshift=-4cm,align=left]above:\textsc{Concatenation}}] {};
+
+      \node at (copy-src) [draw,color=white,fill=gray!50,rectangle,xshift=0cm,yshift=-1cm,minimum width=6cm,minimum height=10cm,label={[xshift=-1.5cm]above:\textsc{Fragmentation}}] {};
+    \end{pgfonlayer}
+
+  \end{tikzpicture}
+%\end{document}

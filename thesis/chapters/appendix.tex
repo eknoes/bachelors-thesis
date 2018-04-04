@@ -1,0 +1,69 @@
+%!TEX root=../thesis.tex
+\chapter{Appendix}
+\section{Measured Data}
+The following tables contain the measured data of the experiment described in chapter~\ref{ch:eva}.
+\begin{table}[h]
+  \centering
+  \begin{tabular}{llrrr}
+    \toprule
+    & & \multicolumn{3}{c}{Percentile in ms} \\ \cmidrule(r){3-5}
+    Test Case & MTU in & 25th & 50th & 75th\\
+    \midrule
+    Ethernet & 1468 &0.137 &0.139 & 0.140 \\
+    & 1500 & 0.138 & 0.140 & 0.146 \\
+    & 2936 & 0.440 & 0.520 & 0.579 \\
+    %\midrule
+    MACsec & 1468 &0.146 & 0.154 & 0.159 \\
+     & 1500 & 0.146 & 0.155 & 0.160 \\
+     & 2936 & 0.279 & 0.444 & 0.470 \\
+     %\midrule
+    Modified MACsec & 1468 & 0.146 & 0.155 & 0.160 \\
+     & 1500 & 0.161 & 0.166 & 0.169 \\
+     & 2936 & 0.161 & 0.174 & 0.178 \\
+     \bottomrule
+  \end{tabular}
+  \caption{\acrlong{RTT} measurement}
+  \label{tab:rtt-data}
+\end{table}
+\begin{table}[h]
+  \centering
+  \begin{tabular}{llrrr}
+    \toprule
+    & & \multicolumn{3}{c}{Percentile in Mbit/s} \\ \cmidrule(r){3-5}
+    Test Case & MTU in& 25th & 50th & 75th\\
+    \midrule
+   Ethernet & 1468 & 929.23 & 929.30 & 929.40\\
+& 1500 & 930.60 & 930.69 & 930.75\\
+& 2936 & 962.46 & 962.48 & 962.49\\
+MACsec & 1468 & 907.40 & 907.51 & 907.64\\
+& 1500 & 908.94 & 909.03 & 909.15\\
+& 2936 & 950.01 & 950.05 & 950.26\\
+Modified MACsec & 1468 & 907.38 & 907.51 & 907.64\\
+& 1500 & 863.95 & 864.19 & 864.41\\
+& 2936 & 924.75 & 924.90 & 925.06\\
+\bottomrule
+  \end{tabular}
+  \caption{Bandwidth measurement}
+  \label{tab:bandwidth-data}
+\end{table}
+\begin{table}[h]
+  \centering
+  \begin{tabular}{llrrr}
+    \toprule
+    & & \multicolumn{3}{c}{Percentile in \%} \\ \cmidrule(r){3-5}
+    Test Case & MTU in byte & 25th & 50th & 75th\\
+    \midrule
+   Ethernet & 1468 & 4.55& 4.70& 4.81\\
+    & 1500& 4.59& 4.74& 4.84\\
+    & 2936& 4.80& 5.02& 5.16\\
+    MACsec & 1468& 0.97& 1.04& 1.11\\
+    & 1500& 1.87& 1.93& 2.00\\
+    & 2936& 2.07& 2.24& 2.29\\
+    Modified MACsec & 1468& 0.96& 1.03& 1.10\\
+    & 1500& 1.64& 1.70& 1.77\\
+    & 2936& 1.04& 1.06& 1.08\\
+    \bottomrule
+  \end{tabular}
+  \caption[CPU Usage during bandwidth test]{CPU usage in percent on the sender machine during the bandwidth test}
+  \label{tab:cpu-data}
+\end{table}

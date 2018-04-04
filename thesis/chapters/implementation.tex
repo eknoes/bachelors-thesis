@@ -1,0 +1,118 @@
+%!TEX root=../thesis.tex
+\section{Implementation}
+\label{ch:implementation}
+In 2016 the \gls{MACsec} kernel driver implemented by \textsc{Sabrina Dubroca} was merged into the linux kernel\footnote{\url{https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=c09440f7dcb304002dfced8c0fea289eb25f2da0}}.
+The design specified in the previous chapter is implemented based on the kernel version 4.15.6\footnote{\url{https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable-rc.git/commit/?h=v4.15.6&id=1a7aef62b47b00630e62a268d647f54ec93fb38c}}.
+
+In~\cite{dubrocamacsec} \textsc{Dubroca} describes the implementation details of the \gls{MACsec} driver.
+\gls{MACsec} is implemented as a virtual network device.
+There are two important entry points regarding the proposed changes.
+When a new frame is sent via the \gls{MACsec} device, the function \inlinecode{c}{macsec_start_xmit} is executed with the frame as parameter.
+When a frame is received by the \gls{MACsec} device, the \inlinecode{c}{rx_handler} \inlinecode{c}{macsec_handle_frame} function is executed.
+
+Frames in the linux kernel are represented by \inlinecode{c}{struct sk_buff}, which is an abbreviation of socket buffer.
+This struct contains multiple pointers to the actual data.
+
+The \gls{MACsec} frame header is represented by the \inlinecode{c}{struct macsec_eth_header}.
+To reflect the proposed changes of the \gls{MPDU}, it now contains the \acrlong{MF} and \acrlong{E} bits as well as an arbitrary number of extension headers as shown in the implementation excerpt~\ref{lst:macsec-hdr}.
+
+The \gls{MTU} of the \gls{MACsec} device is calculated by subtracting the size of the \gls{SecTAG} and \gls{ICV} from the \gls{MTU} of the underlaying network device.
+To reflect the increased \gls{MTU}, a constant---\inlinecode{c}{#define ADDITIONAL_MTU 1468}---is introduced and added to this value.
+\begin{figure}
+  \lstset{language=C}
+  \begin{lstlisting}
+  struct macsec_eth_header {
+      struct ethhdr eth;
+      u8  tci_an;
+      u8  short_length:6
+          more_fragments:1
+          extended:1;
+      __be32 packet_number;
+      u8 secure_channel_id[8];
+  } __packed;
+  \end{lstlisting}
+  \caption{\acrshort{MACsec} header struct}
+  \label{lst:macsec-hdr}
+\end{figure}
+
+\subsection{Fragmentation}
+The fragmentation is implemented in the transmission handler function \inlinecode{c}{macsec_start_xmit}.
+Therefore, the size of the socket buffer is checked.
+If its current size added to the additional \gls{MACsec} size is larger than the \gls{MTU} of the underlaying device a fragment has to be created.
+Therefore, a second socket buffer is allocated.
+The ethernet header is copied and the payload is split up between both frames.
+After that, each step is executed on both socket buffers if fragmentation occurs.
+To ensure the correct order of both frames, the second socket buffer is transmitted directly after the first socket buffer.
+
+\subsection{Reassembly}
+The reassembly takes place after the \gls{MACsec} frame is validated and the \gls{SecTAG} and \gls{ICV} are stripped.
+If the \acrfull{MF} bit is set, the payload, its length and the original Ethertype are saved in a double linked list as shown in~\ref{lst:frag_buff}.
+As every \acrfull{SC} has its own buffer the network device is still able to receive frames of different \glspl{SC}.
+
+\begin{figure}
+  \lstset{language=C}
+  \begin{lstlisting}
+  struct macsec_fragmentation_buffer {
+    sci_t sci;
+    struct macsec_fragmentation_buffer *next;
+    struct macsec_fragmentation_buffer *prev;
+    unsigned char *data;
+    unsigned int len;
+    unsigned short proto;
+  }
+  \end{lstlisting}
+  \caption{Fragment buffer data structure}
+  \label{lst:frag_buff}
+\end{figure}
+
+When a frame arrives that does not have the \gls{MF} bit set, it is checked whether data is buffered for this \gls{SC}.
+If this is the case, the data of the fragmentation buffer is prepended to the payload of the frame.
+Additionally, the Ethertype is set according to the saved one.
+After the buffer is cleared, the frame is delivered.
+
+\subsection{Challenges}
+While implementing the proposed modifications of \gls{MACsec}, several issues arised.
+The three most significant ones are described in the following paragraphs.
+
+\paragraph{Order of frames}
+\label{par:frame-order}
+The protocol relies on the correct order of frames.
+As both endpoints are connected directly, it must be ensured that the network interface retains the order on transmission.
+Therefore, the new \gls{MACsec} driver transmits both fragments successively to the network interface.
+
+Each network interface has a configured algorithm which manages the queue.
+This group of algorithms is named \glspl{Qdisc}~\cite{hubert2002linux}.
+A simple \gls{Qdisc} is \gls{FIFO}---packets are sent in the order they arrive.
+There are also \glspl{Qdisc}, which do not retain the order of frames as they arrive, but prefer some with certain properties.
+One of them is FQ\_CoDel\footnote{\url{http://man7.org/linux/man-pages/man8/tc-fq_codel.8.html}}, which drops packets with a high queing delay.
+
+The \gls{Qdisc} FQ\_CoDel has been set for the network interface on the used test system.
+This led to high retransmission and error rates while using ``iperf3''.
+
+As the virtual device should not change the configuration of the underlaying network interface, it does not set a \gls{Qdisc}.
+The only solution that may seem reasonable is to print a warning to kernel log, if a \gls{Qdisc} differs from \gls{FIFO}, as this may decrease the performance of \gls{MACsec} fragmentation significantly.
+
+\paragraph{Concatenation}
+The implementation of the concatenation algorithm has several requirements, two of them are the possibility to access and manipulate the queue of the \gls{MACsec} device.
+By default the \gls{MACsec} device has no queue but after configuring a \gls{Qdisc}---which is described in the previous section---it was possible to access it.
+When concatenation of several \glspl{SDU} happens, it may occur that the last \gls{SDU} must additionally be fragmented.
+If this happens, it must be guaranteed that the last fragment of this \gls{SDU} is sent in the next \gls{MACsec} frame.
+Thus, this fragment must be the next one processed by the \gls{MACsec} device and the queue must be manipulated to achieve that.
+After some investigation, it was possible to dequeue and enqueue \glspl{SDU}, but not to manipulate the order of the queue.
+For time reasons, it was not possible to implement this manipulation and hence the current implementation does not support concatentation.
+
+\paragraph{Fragmentation of TCP packets}
+If the socket buffer has to be fragmented, it is split into two parts.
+Therefore, the original buffer is trimmed and the remaining payload is moved to another position, where the fragment points to.
+
+To test the implementation the command line tools \inlinecode{bash}{ping}---which sends ICMP packets---and  \inlinecode{bash}{iperf3}---which sends \gls{TCP} packets---where used.
+In the beginning of each test everything worked but when \inlinecode{bash}{iperf3} was used after a varying amount of time the kernel crashed.
+
+After many debugging attempts, the reliability of \gls{TCP} turned out to be a problem.
+\gls{TCP} retransmits a packet when no acknowledge is received.
+Therefore, the kernel keeps a pointer of the socket buffer, so on retransmission the frame must not be recreated.
+If the socket buffer was fragmented by \gls{MACsec} the kernel expected a longer one which led to a kernel panic.
+
+To solve this problem, the implementation now checks, whether a reference to the socket buffer is still hold by anyone.
+If this is the case the socket buffer and its data is cloned, so if \gls{TCP} now retransmits a packet it is not modified.
+This is recommended by the documentation\footnote{\url{https://www.fsl.cs.sunysb.edu/kernel-api/re501.html}}.

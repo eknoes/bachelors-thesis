@@ -1,0 +1,355 @@
+%!TEX root=../thesis.tex
+\chapter{Fragmentation and Concatenation Approaches}
+\label{ch:design}
+The problem described in the introduction arises when using \gls{MACsec} and the configuration of Jumbo Frames is not possible.
+But it can also appear in different scenarios with different protocols.
+It occurs when an \gls{SDU} should be processed which is bigger than the \gls{MTU}, when using \gls{MACsec} bigger than 1468 bytes.
+This can happen because the sender is not aware that the \gls{MTU} undercuts the standard Ethernet \gls{MTU} of 1500 byte.
+Following the current \gls{MACsec} standard it cannot be processed and is dropped~\cite{macsec}.
+
+When thinking about a transparent fragmentation and concatenation protocol to solve this problem, there is the decision to make whether fragmentation should happen before or after applying \gls{MACsec}.
+This means, whether the \gls{SDU} is fragmented or the \gls{MPDU} is fragmented.
+
+In the following paragraphs, both approaches are drafted, evaluated and discussed.
+
+\section{Fragmentation Approaches}
+In figure~\ref{fig:sdu-mpdu-frag} the process of fragmenting the \gls{SDU} and applying \gls{MACsec} on  each fragment (\ref{fig:sdu-frag}) and the process of first applying \gls{MACsec} on the \gls{SDU} and fragmenting the \gls{MPDU}~(\ref{fig:mpdu-frag}) are compared.
+
+\begin{figure}
+  \begin{subfigure}{0.53\textwidth}
+    \centering
+    \def\svgwidth{\columnwidth}
+    \input{./figures/sdu-fragmentation.pdf_tex}
+    \caption{SDU fragmentation}
+    \label{fig:sdu-frag}
+  \end{subfigure}
+  ~
+  \begin{subfigure}{0.45\textwidth}
+    \centering
+    \def\svgwidth{\columnwidth}
+    \input{./figures/mpdu-fragmentation.pdf_tex}
+    \caption{MPDU fragmentation}
+    \label{fig:mpdu-frag}
+  \end{subfigure}
+  \caption[\acrshort{SDU} and \acrshort{MPDU} approaches]{SDU (\ref{fig:sdu-frag}) and MPDU (\ref{fig:mpdu-frag}) fragmentation approaches}
+  \label{fig:sdu-mpdu-frag}
+\end{figure}
+
+\subsection{Fragmenting the \acrshort{SDU}}
+The oversized \gls{SDU} is fragmented into two fragments, each smaller or equal to the \gls{MACsec} \gls{MTU} of 1468 bytes.
+After that, \gls{MACsec} is applied to both fragments.
+The indication of fragmentation can work similar to the \gls{IP} protocol or \gls{WLAN}, using a \acrfull{MF} bit in the \gls{MACsec} header.
+
+When the destination receives the first frame, it verifies the \gls{MACsec} frame.
+After that the destination checks for the \gls{MF} bit.
+If it is set, the destination waits for the next \gls{MACsec} frame to arrive and assembles both secured payloads after successfully verifying the second \gls{MACsec} frame.
+
+Without a field to identify the fragmented \gls{SDU}, the protocol relies on the consecutive transmission of both fragments.
+Otherwise, two payloads which do not belong together are assembled.
+But as \gls{MACsec} works on Point-to-Point connections, frames can not overtake another and the consecutive transmission can be guaranteed by the sender.
+
+If the---of the undercut \gls{MTU} unaware---sender sends a frame with a size of 1500 byte, after applying \gls{MACsec} the first fragment has a size of 1500 bytes.
+The second one then has a size of 64 bytes.
+The overall data sent is 1564 bytes.
+
+\subsection{Fragmenting the \acrshort{MPDU}}
+Using this approach \gls{MACsec} is applied to the oversized \gls{SDU}.
+After that, the \gls{MACsec} frame is fragmented and both fragments are sent to its destination.
+When the destination receives the first fragment it waits for the second one.
+After receiving the second fragment both are assembled and verified by \gls{MACsec}.
+The fragmentation can be indicated with a \gls{MF} bit as in the previous approach.
+
+If the---of the undercut \gls{MTU} unaware---sender sends a frame with a size of 1500 byte, the \gls{MPDU} has a size of 1532 byte.
+The first fragment then has a size of 1500 bytes, the second one of 32 bytes.
+Considering the minimum size of an ethernet frame, the second fragment has to be padded to a length of 46 bytes.
+The overall data sent is 1546 bytes.
+
+\section{Concatenation Approaches}
+If the first fragment has the maximum size of 1500 byte, the second one is much smaller, regardless which of both approaches is used for fragmentation.
+In the \gls{MPDU} approach it is even to small to be sent without padding.
+To utilize the maximum space in the second fragment, concatenation like in the \gls{LTE} protocol can be implemented as optimization.
+Therefore, the sender checks the network transmission buffer for remaining \glspl{SDU} and concatenates \glspl{SDU} with the same destination.
+The frame header has to specify the end of a segment in the payload, so that the destination is able to split the segments.
+Furthermore, it has to indicate whether the last segment is fragmented.
+
+For both approaches, a drafted concatenation design is described in the following paragraphs.
+
+Assuming that concatenation creates a higher latency, its usage should be optional.
+
+\subsection{Concatenation of \acrshortpl{SDU}}
+\label{par:concat-header}
+In this approach, concatentation must be managed inside the \gls{MPDU} header.
+
+As an arbitrary number of \glspl{SDU} can be concatenated, the header must have a variable size.
+Moreover, for every except one \gls{SDU} the length must be present.
+To represent the maximum length of a \gls{SDU}, considering a \gls{MTU} of 1500 bytes, 11 bits are needed.
+
+
+The \gls{SecTAG} needs to carry several additonal information.
+It must indicate, if concatenation is used and present the length of all but one concatenated \glspl{SDU}.
+Furthermore, the use of fragmentation must be indicated.
+To have a variable header, depending on the number of concatenated \glspl{SDU}, an extension header can be used like in the \gls{LTE}, which is explained in section~\ref{sec:lte}.
+
+Therefore, a modification of the \gls{SecTAG} is proposed as shown in figure~\ref{fig:concat-sectag}.
+The unmodified \gls{SecTAG} has two reserved bits that follow the short length field, which are used.
+These bits are replaced by:
+\begin{itemize}
+  \item \acrfull{MF} bit
+  \item \acrfull{E} bit
+\end{itemize}
+The \gls{MF} bit indicates, whether the last \gls{SDU} is fragmented or not.
+The \gls{E} bit indicates, whether an extension header follows.
+
+An extension header comprises of:
+\begin{itemize}
+  \item Segment length field (11 bit)
+  \item Reserved field (4 bit), to achieve a byte-aligned header
+  \item \acrlong{E} bit
+\end{itemize}
+
+For every except the first \gls{SDU} an extension header is present.
+Extension headers are appended to the \gls{SecTAG}.
+The segment length field is 11 bit long and contains the length of the corresponding \gls{SDU}.
+The first extension header corresponds to the second \gls{SDU}.
+As---according to the \gls{IEEE} \gls{MACsec} standard~\cite{macsec}---the header must be byte-aligned, it contains 4 reserved bits, which follow the segment length.
+These are followed by the \gls{E} bit, which indicates whether another extension header follows.
+
+When the destination receives a \gls{PDU}, it verifies the \gls{MACsec} frame and checks the first \gls{E} bit.
+If it is set, it splits the segments according to the extension headers.
+Afterwards, it checks the \gls{MF} bit and if applicable buffers the last, fragmented \gls{SDU}.
+If the buffer contains a fragment, the first \gls{SDU} is appended to it.
+
+As the \gls{SecTAG} is protected against modifications by the \gls{ICV}, the security should not weaken.
+Furthermore, it must be ensured that all concatenated \glspl{SDU} belong to the same \acrfull{SC}.
+
+\begin{figure}
+  \begin{bytefield}[bitwidth=0.0625\columnwidth]{8}
+    \bitheader{1-8} \\
+    \wordbox{2}{Ethertype} \\
+    \bitbox{6}{\acrshort{TCI}} & \bitbox{2}{\acrshort{AN}} \\
+    \bitbox{6}{\acrshort{SL}} & \colorbitbox{pastelgreen}{1}{\acrshort{MF}} & \colorbitbox{pastelgreen}{1}{\acrshort{E}} \\
+    \wordbox{4}{\acrshort{PN}} \\
+    \begin{rightwordgroup}{optional}
+      \wordbox{8}{SCI}
+    \end{rightwordgroup}\\
+    \begin{rightwordgroup}{Number of extension\\headers depends on\\number of \\concatenated \glspl{SDU}}
+      \begin{leftwordgroup}{Extension\\header}
+
+      \colorwordboxProp{pastelgreen}{1}{Segment Length}{lrt} \\
+      \colorbitboxProp{pastelgreen}{3}{ }{lrb} & \colorbitbox{lightgray}{4}{} & \colorbitbox{pastelgreen}{1}{E}
+    \end{leftwordgroup}\\
+
+      \wordbox[]{1}{$\vdots$} \\[1ex]
+
+      \colorwordboxProp{pastelgreen}{1}{Segment Length}{lrt} \\
+      \colorbitboxProp{pastelgreen}{3}{ }{lrb} & \colorbitbox{lightgray}{4}{} & \colorbitbox{pastelgreen}{1}{E}
+    \end{rightwordgroup}
+  \end{bytefield}
+  \caption[Draft for modified \acrshort{SecTAG}]{Draft for modified \gls{SecTAG} to support fragmentation and concatenation. New fields are highlighted green.}
+  \label{fig:concat-sectag}
+\end{figure}
+
+\subsection{Concatenation of \acrshortpl{MPDU}}
+Concatenation for this approach would use a header similar to the extension header of the \gls{SDU} approach which is described in figure~\ref{fig:concat-sectag}.
+
+\gls{MACsec} is applied to every \gls{SDU}.
+After that, the \glspl{MPDU} are concatenated together, using the extension header described in section~\ref{par:concat-header}, and sent in one frame.
+Furthermore, the last extension header must additionally contain a \gls{MF} bit to support fragmentation.
+
+The destination reads all extension headers and splits all \glspl{MPDU}.
+After that, it verifies all \gls{MACsec} frames.
+
+\section{Evaluation}
+To evaluate both approaches, this thesis assumes the two cases of ``mouse flows'' and ``elephant flows'' as introduced by L. Guo and I. Matta in~\cite{miceandelephants}.
+An elephant flow describes a large data flow, a mice flow a small one.
+
+For the elephant flow this thesis assumes that the network buffer is full with \glspl{SDU} with the size of the Ethernet \gls{MTU} of 1500 bytes.
+In the case of the mouse flow it is assumed that one \gls{SDU} is sent without the necessity of fragmentation or concatenation.
+
+This thesis compares:
+\begin{enumerate}
+  \item Data overhead
+  \item Cryptographic overhead
+  \item Latency
+  \item Security
+\end{enumerate}
+
+\subsection{Data overhead}
+%This thesis assumes the Ethernet \gls{MTU} of 1500 bytes.
+As baseline to compare to, \gls{MACsec} with Jumbo Frames is used, which results in 32 bytes overhead for each case.
+This solution is considered to be optimal because the \gls{MACsec} header must not be increased but it is not applicable for the given scenario as explained in the introduction.
+
+To calculate the overhead for each approach a function is developed which has the number of \glspl{SDU} that should be sent as input and outputs the total size of the sent headers.
+After that the gradients of the functions are compared.
+
+\subsubsection{Jumbo Frames}
+The jumbo frame solution creates an overhead of 32 bytes per \gls{SDU}, regardless of whether it is a mice or an elephant flow.
+
+To the best of the authors knowledge there are no layer 2 concatenation solutions.
+Therefore, this thesis uses normal \gls{MACsec} as baseline for concatenation solutions.
+The header size is 32 bytes per \gls{SDU}.
+
+\subsubsection{\gls{SDU} fragmentation and concatenation}
+For this approach the header size comprises of 32 bytes per frame and additionally two bytes for every concatenated segment from the second segment onwards.
+
+\paragraph{Elephants}
+The \glspl{SDU} have the maximum size, so there are never more than two data segments in one frame.
+Assuming every frame contains two data segments, the header for this approach is 34 bytes per frame, therefore, the \gls{MACsec} \gls{MTU} decreases to 1466 bytes.
+
+$f(n)$ in~\ref{eq:elephant-app-1-0} calculates the total size of headers for $n$ \glspl{SDU} using the approach of fragmenting \glspl{SDU}.
+\begin{equation*}
+  \text{SDU} = 1500\text{ byte}
+  \quad   \text{MTU} = 1466\text{ byte}
+  \quad   \text{MACsec} = 34\text{ byte}
+\end{equation*}
+\begin{equation}\label{eq:elephant-app-1-0}
+  f(n) = \underbrace{n \cdot \frac{\text{SDU}}{\text{MTU}}}_{\text{number of frames}} \cdot\; \text{MACsec} \qquad n \in \mathbb{N}
+\end{equation}
+The number of frames that have to be sent is the total payload of all \glspl{SDU} divided by the \gls{MTU} of the approach.
+Multiplied with the header size it is the total size of sent headers.
+
+\begin{equation}\label{eq:elephant-app-1-1}
+  f(n) = n \cdot \frac{1500}{1466} \cdot\; 34 \text{ byte} \qquad n \in \mathbb{N}
+\end{equation}
+
+\begin{equation}
+  = 34.79\text{ byte} \cdot n
+\end{equation}
+
+As $n$ is the number of \glspl{SDU} of a size of 1500 bytes, the average overhead per \gls{SDU} is $34.79$ bytes.
+
+\begin{equation}\label{eq:elephant-app-1-2}
+  \frac{34.79}{32} \cdot 100\% = 108.71\%
+\end{equation}
+
+As step \ref{eq:elephant-app-1-2} of the calculation shows, compared with the overhead of the jumbo frame solution, the overhead of this approach is $8.71\%$ bigger.
+
+\paragraph{Mice}
+As the mice case is an \gls{SDU} which is not fragmented, the overhead is the 32 bytes long header, which is the same overhead a jumbo frame solution has.
+
+\subsubsection{\gls{MPDU} fragmentation and concatenation}
+For the \gls{MPDU} approach there is a 2 bytes long header for every except one concatenated segment and a 32 bytes \gls{MACsec} header per \gls{SDU}.
+
+\paragraph{Elephants}
+In this case there is a 2 bytes long header for each frame because there are never more than two \glspl{SDU} in one frame for the elephant case.
+Additionally, one \gls{MACsec} header per \gls{SDU} is added.
+\begin{equation*}
+  \text{MPDU} = 1532\text{ byte}
+  \quad   \text{MTU} = 1498\text{ byte}
+  \quad   \text{Header} = 2\text{ byte}
+  \quad   \text{MACsec} = 32\text{ byte}
+\end{equation*}
+
+To calculate the transmitted header size, $g(n)$ in~\ref{eq:app2-elephant-1} adds the size of all fragmentation headers---$2$ bytes per frame---with the size of all \gls{MACsec} headers.
+
+\begin{equation}\label{eq:app2-elephant-1}
+  g(n) = \underbrace{n \cdot \frac{\text{MPDU}}{\text{MTU}}}_{\text{number of frames}} \cdot\; \text{Header} + n \cdot \text{MACsec} \qquad n \in \mathbb{N}
+\end{equation}
+\begin{equation}
+  g(n) = n \cdot \frac{1532}{1498} \cdot 2 \text{ byte} + n \cdot 32\text{ byte} \qquad n \in \mathbb{N}
+\end{equation}
+\begin{equation}
+  = 34.05\text{ byte}\cdot n
+\end{equation}
+\begin{equation}\label{eq:app2-elephant-2}
+  \frac{34.05}{32} \cdot 100\% = 106.41\%
+\end{equation}
+Step~\ref{eq:app2-elephant-2} shows that, compared with the jumbo frame solution, this approach creates an overhead of $6.41\%$.
+
+\paragraph{Mice}
+In case of a mice flow the \gls{MPDU} has a size where it is not fragmented and the network stack is empty, so concatenation is not applicable.
+This approach would then send an unmodified \gls{MACsec} frame.
+The overhead is one 32 bytes \gls{MACsec} header, which is compared to the jumbo frame solution $6.25\%$ higher.
+
+\subsubsection{Comparison}
+A comparison of the average header sizes of the different approaches per processed \gls{SDU} is displayed in table~\ref{tab:draft-approach-comparison-header}.
+In the mice case, all approaches create the same header size of 32 byte.
+In the elephant case, the \gls{MPDU} approach generates a smaller header compared to the \gls{SDU} approach.
+The jumbo frame solution is not usable in the given setup, but would be the best of these approaches regarding data overhead.
+
+\begin{table}
+  \centering
+  \begin{tabular}{lrr}
+    \toprule
+    & \multicolumn{2}{c}{Header size in byte} \\ \cmidrule(r){2-3}
+    Approach & Elephant flow & Mice flow\\
+    \midrule
+    Jumbo Frames & 32.00  & 32.00 \\
+    SDU & 34.79  & 32.00 \\
+    MPDU & 34.05  & 32.00 \\
+    \bottomrule
+  \end{tabular}
+  \caption[Comparison of average header size for fragmentation design approaches]{A comparison of the average resulting header sizes using different approaches for fragmenting and concatenating oversized \glspl{SDU} while using \gls{MACsec}}
+  \label{tab:draft-approach-comparison-header}
+\end{table}
+
+\subsection{Cryptographic overhead}
+When using \gls{MACsec} two cryptographic processes are done: The payload is encrypted and the \gls{ICV} is calculated, which includes the header and payload.
+
+For the encryption part there arises no overhead for both approaches, as length of the encrypted payload is the same compared to usual \gls{MACsec}.
+
+For the \gls{MPDU} approach the number of cryptographical operations remain unchanged when calculating the \gls{ICV} because the \glspl{MPDU}  is created as usual.
+
+If fragmentation has to be applied, with the \gls{SDU} approach the cryptographical operations for the \gls{ICV} increase because a second header has to be processed.
+
+Regarding concatenation, the cryptographical operations for calculating the \gls{ICV} decrease when using the first approach, because several \glspl{SDU} are concatenated and share the same \gls{MACsec} header.
+For the second approach this does not apply, as every \gls{SDU} has still one \gls{MACsec} header.
+
+As the cryptographic operations remain the same for the approach of fragmenting \gls{MPDU} and minimal increases or decreases for the other, the cryptographic overhead is considered as negligible.
+
+\subsection{Latency}
+The latency is assumed to increase compared to jumbo frames because in both approaches the data is sent in two instead of one frame, so the receipient has to wait for the second frame to arrive before processing the data.
+But as there is to the best of the authors knowledge no other solution, this is considered as negligible.
+
+Concatenation can be an issue for latency, as it has to check the network stack for other \glspl{SDU}, but as this is optional it is not considered here.
+% Fragmentation: None
+% Concatenation but equal for both approaches. -> Must be able to be switched of for time critical applications
+
+\subsection{Security}
+\label{sec:design-security}
+\gls{MACsec} secures against a wide range of network attacks.
+In the following section both approaches are analyzed regarding a decrease of security provided by \gls{MACsec}.
+
+\subsubsection{SDU fragmentation and concatenation}
+As this approach sends modified \gls{MACsec} frames, it has to be evaluated if the modifications influence the security.
+The new header fields are inside the \gls{SecTAG} which is protected by the \gls{ICV}.
+Therefore, the new header fields are also protected.
+
+\subsubsection{MPDU fragmentation and concatenation}
+This approach fragments and concatenates unmodified \glspl{MPDU} which are conventionally processed by \gls{MACsec}.
+The additional segment field header is not protected because it is not part of the \gls{MPDU}.
+
+Furthermore, the source and destination fields of the ethernet frame are not longer protected by the \gls{ICV}.
+Thereby an unauthenticated attacker is able to sent frames with the More-Fragments bit set and a spoofed source address.
+As this is not protected the destination would interpret the following valid and authenticated frame as the second fragment.
+After concatenation the ICV would be invalid, the unauthorized as well as the authorized frame would be dropped.
+This decreases the availability for authenticated users and is a security issue.
+
+\subsubsection{Comparison}
+The first approach provides the same security as regular \gls{MACsec}.
+The second approach rapidly decreases the security provided by \gls{MACsec}.
+
+\subsection{Outcome}
+The previous sections compared the approach of fragmenting and concatenating \glspl{SDU} to the approach of fragmenting and concatenating \glspl{MPDU} regarding data and cryptographic overhead as well as security and latency.
+The results are displayed in table~\ref{tab:draft-approach-comparison}.
+
+The approach of processing \glspl{MPDU} is insecure as shown in section~\ref{sec:design-security}.
+This thesis proposes an enhancement for \gls{MACsec}, which secures layer 2 traffic.
+A solution which weakens the security that \gls{MACsec} provides is not contemplable.
+
+Therefore, this thesis focuses on the improvment, implementation and evaluation of the approach of fragmenting and concatenating \glspl{SDU}.
+
+\begin{table}
+  \centering
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Approach & \multicolumn{2}{c}{Data overhead} & Cryptograpy & Latency & Security\\
+    & Elephant flow & Mouse flow & & & \\
+    \midrule
+    SDU & 108.71\% & 100\% & $\rightarrow$ & $\searrow$ & $\rightarrow$\\
+    MPDU & 106.41\% & 100\% & $\rightarrow$ &  $\searrow$ & $\searrow$\\
+    \bottomrule
+  \end{tabular}
+  \caption[Comparison of fragmentation design approaches]{Comparison of the \gls{SDU} and \gls{MPDU} approach}
+  \label{tab:draft-approach-comparison}
+\end{table}

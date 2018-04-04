@@ -1,0 +1,14 @@
+qdisc noqueue 0: dev lo root refcnt 2 
+qdisc pfifo 8004: dev eno1 root refcnt 2 limit 100p
+qdisc fq_codel 0: dev enp0s20u1 root refcnt 2 limit 10240p flows 1024 quantum 1514 target 5.0ms interval 100.0ms memory_limit 32Mb ecn 
+qdisc noqueue 0: dev macsec0 root refcnt 2 
+185: macsec0@eno1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+    link/ether ec:b1:d7:4b:bc:fd brd ff:ff:ff:ff:ff:ff
+2: eno1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo state UP mode DEFAULT group default qlen 1000
+    link/ether ec:b1:d7:4b:bc:fd brd ff:ff:ff:ff:ff:ff
+185: macsec0: protect on validate strict sc off sa off encrypt on send_sci on end_station off scb off replay off 
+    cipher suite: GCM-AES-128, using ICV length 16
+    TXSC: ecb1d74bbcfd0001 on SA 0
+        0: PN 103, state on, key 01000000000000000000000000000000
+    RXSC: ecb1d74bbd010001, state on
+        0: PN 100, state on, key 02000000000000000000000000000000

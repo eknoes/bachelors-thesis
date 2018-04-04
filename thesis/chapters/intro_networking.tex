@@ -1,0 +1,116 @@
+%!TEX root=../thesis.tex
+\section{Computer Networks}
+The following sections give a short introduction into computer network theory and provide an explanation to the terms used in this thesis.
+If not otherwise noticed, the information of this section is taken from~\cite{tanenbaum2011networks}.
+
+\begin{figure}
+  \centering
+  \def\svgwidth{\columnwidth}
+  \input{./figures/osi.pdf_tex}
+  \caption[\acrshort{OSI} Model]{The first 4 layers of the \gls{OSI} model. Host 1 sends a message to Host 2, one layer 3 and one layer 2 switch are involved.}
+  \label{fig:osi}
+\end{figure}
+
+\paragraph{OSI model}
+The \gls{OSI} model is a reference model for computer network architecture proposed by the \gls{ISO} in~\cite{isoosi1994}.
+
+It defines seven layers which are stacked on top of each other like displayed in figure~\ref{fig:osi}.
+Every layer is just able to communicate with its neighbouring layers and performs a well defined function, such as layer 1 (physical layer) transmits bytes on a medium.
+
+When an application transmits data to another host the data is traveling the path from the top layer (application layer) to the bottom layer, which is the physical layer.
+Each layer on this path performs its function on the data.
+The recipient receives the data and each layer processes it, from the lowest back to the top layer.
+Also the devices in between the network have a layered architecture and are processing the transmitted data in their layers.
+Those devices in the network which determine the path of transmitted data (``routing'') usually have three or two layers as shown in figure~\ref{fig:osi}.
+
+Data received by a layer from the layer above is named \gls{SDU}.
+The processed data, which a layer is passing down to the next layer, is called \gls{PDU}.
+\glspl{PDU} have different names, depending on the layer.
+On layer 2 they are named ``frames'' and on layer 3 they are named ``packets''.
+ A generic term is ``datagram''~\cite{RFC1594}.
+
+Relevant layers for this thesis are the network layer (layer 3) and the data link layer (layer 2).
+
+\paragraph{Layer 3}
+\label{par:layer-3}
+The network layer is determining the route of a packet and makes communication with other networks possible.
+Furthermore, it adapts the \gls{SDU} to the \gls{MTU}, which is the maximum size a data packet can have.
+Therefore, it breaks the \gls{SDU} in several fragments and sends them as single packets.
+The receiving network layer is able to reassemble the fragments and passes them as a whole to the overlaying layer.
+This is possible because each layer is able to put more information into each \gls{SDU} by transforming it or prepending and appending data.
+Usually a layer prepends a header with information on the \gls{SDU} on transmission.
+When it receives a \gls{PDU} to pass it to an upper layer, the information is processed and stripped.
+One of the usual protocols that work on layer 3 is the \gls{IP}.
+The fragmentation process of \gls{IP} is described in section~\ref{sec:ip-fragmentation}.
+
+\paragraph{Layer 2}
+The data link layer communicates in the same subnetwork and consists of two sublayers.
+The Logical Link Control sublayer enables multiplexing.
+On shared channels the \gls{MAC} sublayer is checking if the channel is already in use and if a frame can be transmitted.
+Furthermore, it passes data to the physical layer.
+The \gls{SDU} is put into a frame, source and destination addresses are added, as well as a checksum for error detection.
+In a cable-based \gls{LAN} usually Ethernet is used at the data link layer.
+A \gls{LAN} is a network which operates in a small area, such as one building.
+
+\begin{figure}
+  \centering
+  \begin{bytefield}[bitwidth=0.04\columnwidth]{25}
+    \bitbox{4}{Preamble} & \bitbox{4}{Destination} & \bitbox{4}{Source} &
+    \bitbox{2}{Type} &
+    \bitbox{6}{Payload} &
+    \bitbox{1}{\tiny P\\a\\d} & \bitbox{4}{Checksum}
+  \end{bytefield}
+  \caption{Ethernet \acrlong{PDU}}
+  \label{fig:ethernet}
+\end{figure}
+
+\paragraph{Switched Ethernet}
+Ethernet is standardized by the \gls{IEEE} 802.3\footnote{\url{http://www.ieee802.org/3/}} working group.
+The terms ``\gls{IEEE} 802.3'' and ``Ethernet'' are interchangeable.
+Classical Ethernet used a shared medium to transmit data, which means the physical cable was used by more than one participant at a time.
+This evolved to Switched Ethernet, here a dedicated cable per transmission channel is used.
+
+Data is sent in frames and each frame has a preamble (7 bytes), source (6 byte), destination (6 byte) and ethertype (2 byte) prepended as shown in figure~\ref{fig:ethernet}.
+The preamble is a constant value to synchronize the clocks of sender and receiver.
+Source and destination addresses are 6 bytes long and unique, so every participant can derive if he is the receiver of the frame.
+The ethertype field (2 bytes) is used to distinguish different protocols, so the receiver knows what type of data the payload is.
+Ethertypes can be requested by anyone at the \gls{IEEE}.
+The Ethertype for \gls{MACsec} is 0x88E5.
+Furthermore, a checksum (4 bytes) is appended, so the receiver is able to detect errors that happend on transmission.
+If an error is detected the frame is dropped, so Ethernet does not guarantee a successful transmission.
+An Ethernet frame has to have a minimum size of 64 bytes and a maximum size of 1522 bytes without the preamble, therefore, the payload can usually have a maximum size of 1500 bytes.
+If it has less than 46 bytes, padding has to be used.
+
+\paragraph{Switches \& Router}
+A switch is a device which has a direct connection to several participants or other switches and forwards received frames to the destination.
+A layer 2 switch uses the information in the Ethernet frame header to determine the destination.
+As it works on layer 2, it can just forward packets in the same network.
+A layer 3 switch---or router---is able to route packets and uses the information of the \gls{IP} to determine the destination.
+Therefore, it is able to route between different networks or fragment packets.
+
+\paragraph{MTU}
+The \acrfull{MTU} is the maximum size of a data unit to be transmitted.
+As prior mentioned, the Ethernet \gls{MTU} is for example 1500 bytes, for \acrlong{WLAN} it is 2272 bytes~\cite{ieeewlan}.
+The protocol used in layer 3---which is in practice mostly \gls{IP}---fragments the \glspl{SDU} to match the \gls{MTU}.
+
+The Path \gls{MTU} is the minimum \gls{MTU} on the path a packet travels.
+To determine the Path \gls{MTU} a process named \gls{PMTUD} is used, which is specified in \cite{RFC1191}.
+
+\paragraph{Jumbo Frames}
+Additionally, there is the possibility of raising the \gls{MTU} up to 9000 bytes while using at least Gigabit Ethernet.
+Frames with a size higher than 1500 bytes are called Jumbo Frames.
+This is not standardized, but supported by most vendors of network interfaces.
+
+\paragraph{\acrlong{TCP}}
+\gls{TCP} is a protocol which resides on layer 4---the transport layer---of the \gls{OSI} model.
+It was first specified in RFC~793~\cite{RFC0793}.
+It builds a connection over a network and provides a reliable transmission of packets.
+To achieve reliability, the receiver sends an acknowledgement for received packets.
+If these are not received by the sender after a certain time the packets are resend.
+
+\paragraph{\acrlong{ICMP}}
+The \gls{ICMP} is a companion protocol for \gls{IP}.
+Its first specification was in~\cite{RFC0792}.
+If for example the size of an \gls{IP} packet is bigger than the \gls{MTU}, an \gls{ICMP} message is sent to report this to the sender.
+Furthermore, it is used to send ``echo'' messages to check if a machine is reachable which then answers with an ``echo reply'' message.
+This can be used to measure the \gls{RTT}, which is the time from sending a packet until receiving the acknowledgement.

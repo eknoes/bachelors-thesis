@@ -1,0 +1,57 @@
+%!TEX root=../thesis.tex
+%\documentclass{article}
+%\usepackage{geometry}
+%\usepackage{tikz}
+%\usetikzlibrary{matrix,calc,shapes,positioning}
+%\begin{document}
+\begin{tikzpicture}
+  [node distance=5.5cm,
+  startstop/.style={rectangle, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=pastelred},
+  decision/.style={diamond, minimum width=4cm, minimum height=4cm, text centered, draw=black, fill=pastelgreen},
+  process/.style={rectangle, minimum width=3cm, minimum height=1cm, text centered, draw=black, fill=pastelorange, inner sep=.2cm}]
+  \node (begin) [circle,minimum size=.5cm, line width=.01cm, fill=black,label=above:Receive MPDU] {};
+  \node (macsec) [startstop, below=1cm of begin] {MACsec validation};
+  \draw[-{Latex[width=3mm]}] (begin) -- (macsec);
+  \node (e-bit) [decision, below=1cm of macsec] {E bit set?};
+  \draw[-{Latex[width=3mm]}] (macsec) -- (e-bit);
+
+% De-concatenate
+\node (read-ext-header) [process, right=1.5cm of e-bit, align=center] {Read next\\extension header};
+\draw[-{Latex[width=3mm]}] (e-bit) --node[anchor=south]{true} (read-ext-header);
+\node (save-len) [process, below=2cm of read-ext-header] {Save segment length};
+\draw[-{Latex[width=3mm]}] (read-ext-header) -- (save-len);
+\draw[-{Latex[width=3mm]}] (save-len) -| (e-bit);
+\node (split) [process, left=1.5cm of e-bit, align=center] {Split according to\\segment lengths};
+\draw[-{Latex[width=3mm]}] (e-bit) --node[anchor=south]{false} (split);
+
+% Reassembly
+\node (buffer-empty) [decision, below=1cm of split, align=center] {Buffer contains\\segments?};
+\draw[-{Latex[width=3mm]}] (split) -- (buffer-empty);
+\node (append-to-buffer) [process, left of=buffer-empty, align=center] {Append first\\segment to buffer};
+\draw[-{Latex[width=3mm]}] (buffer-empty) --node[anchor=south]{true} (append-to-buffer);
+\node (deliver-buffer) [process, below=1cm of append-to-buffer,align=center] {Deliver buffered\\segment};
+\draw[-{Latex[width=3mm]}] (append-to-buffer) -- (deliver-buffer);
+\node (copy-src-dest) [process, below=2cm of buffer-empty,align=center] {Copy source and\\destination to each segment};
+\draw[-{Latex[width=3mm]}] (deliver-buffer) |- (copy-src-dest);
+\draw[-{Latex[width=3mm]}] (buffer-empty) --node[anchor=east,pos=.0,yshift=-.3cm]{false} (copy-src-dest);
+
+% Fragmentation
+\node (mf-set) [decision, below=1cm of copy-src-dest, align=center] {MF bit set?};
+\node (buffer-last) [process, left of=mf-set,align=center] {Move last segment\\to buffer};
+\node (deliver) [startstop, below=2cm of mf-set] {Deliver remaining segments};
+\node (stop) [circle,minimum size=.5cm, line width=.01cm, fill=black, below=1cm of deliver] {};
+\node (stop2) at (stop) [circle,minimum size=.7cm, line width=.01cm, draw=black] {};
+\draw[-{Latex[width=3mm]}] (deliver) -- (stop2);
+
+
+\draw[-{Latex[width=3mm]}] (copy-src-dest) -- (mf-set);
+\draw[-{Latex[width=3mm]}] (mf-set) --node[anchor=east,pos=.0,yshift=-.3cm]{false} (deliver);
+\draw[-{Latex[width=3mm]}] (mf-set) --node[anchor=south]{true} (buffer-last);
+\draw[-{Latex[width=3mm]}] (buffer-last) |- (deliver);
+  \begin{pgfonlayer}{bg}
+    \node at (e-bit) [draw,color=white,fill=gray!20,rectangle,yshift=-1cm,minimum width=15cm,minimum height=7cm,label={[xshift=-5.8cm]above:\textsc{Deconcatenation}}] {};
+
+    \node at (append-to-buffer) [draw,color=white,fill=gray!50,rectangle,xshift=3cm,yshift=-.4cm,minimum width=10cm,minimum height=5.5cm,label={[xshift=-3.8cm]above:\textsc{Reassembly}}] {};
+  \end{pgfonlayer}
+\end{tikzpicture}
+%\end{document}

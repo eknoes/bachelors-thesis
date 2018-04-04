@@ -1,0 +1,47 @@
+%!TEX root=../thesis.tex
+\chapter{Introduction}
+\label{ch:intro}
+As Industry 4.0 becomes more popular, networking in factories has gotten more important.
+However, current factories are insecure as a study of the german Federal Ministry of Economic Affairs and Energy regarding IT security in Industry 4.0 shows~\cite{studiebmwi}.
+The FastVPN project\footnote{\url{https://en.fast-zwanzig20.de/industrie/fast-vpn-2/}} adresses this problem space.
+
+It provides transparent network bridges---FastVPN boxes---, which are deployed between industry machines and the factory network.
+Thus the network communication is encapsulated, furthermore, network security inbetween the FastVPN boxes is improved.
+This environment is displayed in figure~\ref{fig:environment}.
+
+\begin{figure}[!h]
+  \centering
+  \def\svgwidth{0.8\columnwidth}
+  \input{./figures/environment.pdf_tex}
+  \caption[FastVPN Setup Example]{Insecure network communication is protected by FastVPN boxes. The is done by applying MACsec. The \acrlong{MTU} between the boxes is smaller than the one between client and box.}
+  \label{fig:environment}
+\end{figure}
+
+A protocol used by the FastVPN box to improve network security is \gls{MACsec}, a standard of the \gls{IEEE}.
+\gls{MACsec} provides confidentiality and integrity on the data link layer.
+It encrypts network communication and protects against unauthorized modification by appending a message authentication code.
+The downside of \gls{MACsec} is the reduction of the maximum packet size---the \gls{MTU}--- because additional information are added to each frame which is tunneled through the FastVPN box.
+
+If machines cannot discover that the \gls{MTU} is decreased on the path, the packets are oversized at one point.
+The standard behavior is to drop these oversized packets.
+As a result, machines without this discovery mechanism are not able to communicate through the FastVPN box.
+
+A solution to this problem can be the use of jumbo frames, which allow higher \gls{MTU} sizes than the standard of 1500 bytes.
+By enabling jumbo frames between the FastVPN boxes, the \gls{MTU} can be increased so that the overhead introduced by \gls{MACsec} is equalized.
+But to enable jumbo frames modern network hardware between the FastVPN boxes is required.
+
+The aim of the FastVPN project is the deployment in factories.
+Machines as well as network hardware in factories often have a long life span, so the FastVPN project cannot assume that the configuration of jumbo frames is feasible.
+Furthermore, it is not assumed that the machines are discovering the decreased \gls{MTU}.
+
+Therefore, it requires a solution to use \gls{MACsec} without a reduction of the \gls{MTU} and the configuration of jumbo frames.
+The aim of this thesis is to develop a transparent fragmentation solution in combination with \gls{MACsec} to solve this problem.
+As the reduction of the \gls{MTU} is comparatively small to the frame size, a simple split produces one full and one very small frame.
+Hence, possible optimizations are examined.
+
+This thesis begins with an introduction into computer networks, security and \gls{MACsec}.
+Moreover, protocols which support fragmentation and possible optimizations are examined.
+Afterwards, several approaches to implement fragmentation when using \gls{MACsec} are proposed and discussed.
+The most promising solution is then specified in detail and implemented for the use with linux.
+Finally, the implementation of the proposed fragmentation scheme is evaluated regarding security and performance.
+Therefore, it is compared with the solution of using jumbo frames.
