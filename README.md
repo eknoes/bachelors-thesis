@@ -1,4 +1,4 @@
-# Bachelor's Thesis
+# Bachelor's Thesis of Sönke Huster
 **Enhancements for MACsec providing transparent Layer-2 encryption**
 
 This repository contains all materials for my thesis.
